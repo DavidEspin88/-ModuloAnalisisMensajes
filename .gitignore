@@ -1,0 +1,11 @@
+# Archivos generados dinámicamente
+*.xlsx
+Reporte_*.xlsx
+
+# Backups manuales
+backups/
+
+# Archivos de sistema/temporales
+Thumbs.db
+.DS_Store
+.gemini/

@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Módulo de Análisis Operativo</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Librerías Externas -->
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+<body>
+
+    <!-- MÓDULO DE PROCESAMIENTO DE DATOS -->
+    <section class="analisis-module-container">
+        
+        <header class="module-header">
+            <div class="header-title d-flex align-items-center gap-3">
+                <div class="logo-wrapper" style="height: 50px;">
+                    <img src="gomaiManabi.jpg" alt="Logo GOMAI" style="height:100%;">
+                </div>
+                <div>
+                    <h2>Análisis de Operaciones Militares</h2>
+                    <p>Módulo de Inteligencia Operativa y Visualización de Datos</p>
+                </div>
+            </div>
+            <div class="header-actions d-flex gap-2">
+                <label for="excelInput" class="btn btn-primary btn-sm d-flex align-items-center gap-2">
+                    <span class="material-icons" style="font-size:18px;">upload_file</span> Cargar Excel/CSV
+                </label>
+                <input type="file" id="excelInput" accept=".xlsx, .xls, .csv" hidden>
+                <button id="btnExport" class="btn btn-outline-success btn-sm d-flex align-items-center gap-2">
+                    <span class="material-icons" style="font-size:18px;">file_download</span> Exportar Excel
+                </button>
+                <button id="btnMessage" class="btn btn-outline-dark btn-sm d-flex align-items-center gap-2">
+                    <span class="material-icons" style="font-size:18px;">description</span> Generar Reporte
+                </button>
+            </div>
+        </header>
+
+        <!-- Panel de Filtros Corporativo -->
+        <div class="filter-panel">
+            <div class="filter-group">
+                <label>Periodo (Día):</label>
+                <select id="sheetSelector" class="form-select form-select-sm" disabled>
+                    <option value="">Esperando archivo...</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Desde:</label>
+                <div class="d-flex gap-1">
+                    <input type="date" id="filterStart" class="form-control form-control-sm">
+                    <input type="time" id="filterTimeStart" value="00:00" class="form-control form-control-sm">
+                </div>
+            </div>
+            <div class="filter-group">
+                <label>Hasta:</label>
+                <div class="d-flex gap-1">
+                    <input type="date" id="filterEnd" class="form-control form-control-sm">
+                    <input type="time" id="filterTimeEnd" value="23:59" class="form-control form-control-sm">
+                </div>
+            </div>
+            <div class="filter-group">
+                <label>Jurisdicción (Cantón):</label>
+                <select id="filterCanton" class="form-select form-select-sm">
+                    <option value="TODOS">TODOS</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Tipo Operación:</label>
+                <select id="filterTipo" class="form-select form-select-sm">
+                    <option value="TODOS">TODOS</option>
+                </select>
+            </div>
+            <div class="filter-group flex-grow-1">
+                <label>Búsqueda Rápida:</label>
+                <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="Buscar por cualquier criterio...">
+            </div>
+            <button id="btnFilter" class="btn btn-primary btn-sm px-4">Aplicar</button>
+        </div>
+
+        <!-- Dashboard de Estadísticas y Resumen -->
+        <div class="dashboard-grid">
+            <div class="kpi-card">
+                <h3>Total Planificadas</h3>
+                <span id="statTotalOps" class="kpi-value">0</span>
+            </div>
+            <div class="kpi-card">
+                <h3>Ejecutadas / Eficacia</h3>
+                <span id="statEfectividad" class="kpi-value">0 (0%)</span>
+            </div>
+            <div class="kpi-card">
+                <h3>Personal (PMP)</h3>
+                <span id="statTotalPmp" class="kpi-value">0</span>
+            </div>
+        </div>
+
+        <div class="charts-wrapper" style="grid-template-columns: 1fr 1.5fr 1fr;">
+            <!-- Tabla Resumen Estática -->
+            <div class="chart-box" style="height: auto;">
+                <h4>Resumen por Tipo</h4>
+                <table class="table table-sm table-hover" style="font-size: 0.8rem;">
+                    <thead>
+                        <tr><th>TIPO</th><th class="text-end">CANT.</th></tr>
+                    </thead>
+                    <tbody id="summaryBody"></tbody>
+                    <tfoot class="table-light">
+                        <tr class="fw-bold"><td>TOTAL:</td><td id="summaryTotal" class="text-end">0</td></tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            <div class="chart-box">
+                <h4>Distribución Horaria</h4>
+                <canvas id="opsChart"></canvas>
+            </div>
+            
+            <div class="chart-box">
+                <h4>Por Jurisdicción</h4>
+                <canvas id="geoChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Tabla de Datos Simplificada -->
+        <div class="table-section">
+            <h4 class="mb-3" style="color: var(--pbi-navy); font-size: 1.1rem; font-weight: 600;">Detalle de Operaciones</h4>
+            <div class="table-wrapper">
+                <table id="dataTable" class="official-table table table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>FUERZA</th>
+                            <th>TIPO DE OP.</th>
+                            <th class="text-center">PLANIF.</th>
+                            <th class="text-center">EJECUT.</th>
+                            <th>PROVINCIA</th>
+                            <th>CANTÓN</th>
+                            <th>PARROQUIA</th>
+                            <th class="text-center">FECHA</th>
+                            <th>RESULTADOS</th>
+                            <th class="text-center">PMP</th>
+                            <th class="hide-on-print text-center">ACCIONES</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <tr><td colspan="11" class="text-center py-4">Cargue un archivo...</td></tr>
+                    </tbody>
+                    <tfoot class="table-light">
+                        <tr class="fw-bold">
+                            <td colspan="2" class="text-end">TOTAL PLANIFICADAS:</td>
+                            <td id="tableTotalPlanif" class="text-center">0</td>
+                            <td colspan="8"></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+
+    </section>
+
+    </section>
+
+    <!-- Modal de Edición Bootstrap -->
+    <div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-dark text-white" style="cursor: move;">
+                    <h5 class="modal-title"><span class="material-icons align-middle">edit</span> Editar Operación</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+                    <input type="hidden" id="editId">
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Tipo de Operación (General)</label>
+                        <input type="text" class="form-control" id="editTipo">
+                    </div>
+                    
+                    <div id="opsEditContainer">
+                        <!-- Aquí se cargarán dinámicamente las fechas, horas, resultados y PMP de cada operación -->
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary px-4" onclick="saveChanges()">
+                        <span class="material-icons align-middle" style="font-size:18px;">save</span> Guardar Cambios
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Mensaje y Gestión -->
+    <div class="modal fade" id="messageModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header bg-dark text-white">
+                    <h5 class="modal-title"><span class="material-icons align-middle">analytics</span> Reporte & Gestión de Datos</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-0">
+                    <!-- Navegación de Pestañas -->
+                    <ul class="nav nav-tabs nav-justified" id="reportTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active rounded-0" id="preview-tab" data-bs-toggle="tab" data-bs-target="#tabPreview" type="button" role="tab">
+                                <span class="material-icons align-middle fs-6">text_snippet</span> Vista Previa & Generación
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link rounded-0" id="data-tab" data-bs-toggle="tab" data-bs-target="#tabData" type="button" role="tab" onclick="renderReportCrud()">
+                                <span class="material-icons align-middle fs-6">table_view</span> Gestión de Datos (CRUD)
+                            </button>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content p-3">
+                        <!-- TAB 1: GENERACIÓN DE REPORTE -->
+                        <div class="tab-pane fade show active" id="tabPreview" role="tabpanel">
+                            <!-- Configuración del Reporte -->
+                            <div class="row g-3 mb-3 p-3 bg-light rounded border mx-1">
+                                <div class="col-12 border-bottom pb-2 mb-2">
+                                    <h6 class="m-0 text-primary">Configuración del Periodo</h6>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-bold">Desde:</label>
+                                    <div class="input-group input-group-sm">
+                                        <input type="date" id="reportStartDate" class="form-control">
+                                        <input type="time" id="reportStartTime" class="form-control" value="00:00">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-bold">Hasta:</label>
+                                    <div class="input-group input-group-sm">
+                                        <input type="date" id="reportEndDate" class="form-control">
+                                        <input type="time" id="reportEndTime" class="form-control" value="23:59">
+                                    </div>
+                                </div>
+                                <div class="col-12 text-end">
+                                    <button class="btn btn-primary btn-sm" onclick="generateCustomReport()">
+                                        <span class="material-icons align-middle" style="font-size:16px;">autorenew</span> Actualizar Reporte
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="mb-2 d-flex justify-content-between align-items-center">
+                                <small class="text-muted">Vista previa del mensaje formateado</small>
+                                <button class="btn btn-sm btn-outline-primary" onclick="copyMessage()">
+                                    <span class="material-icons align-middle" style="font-size:16px;">content_copy</span> Copiar Texto
+                                </button>
+                            </div>
+                            <textarea id="generatedMessage" class="form-control" rows="15" style="font-family: 'Consolas', monospace; font-size: 0.85rem; background-color: #f8f9fa;" readonly></textarea>
+                        </div>
+
+                        <!-- TAB 2: CRUD DE DATOS -->
+                        <div class="tab-pane fade" id="tabData" role="tabpanel">
+                            
+                            <!-- Formulario de Edición/Creación (Oculto por defecto) -->
+                            <div id="crudFormContainer" class="card mb-3 border-primary shadow-sm d-none">
+                                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center py-2">
+                                    <h6 class="m-0" id="crudFormTitle">Editar Operación</h6>
+                                    <button type="button" class="btn-close btn-close-white btn-sm" onclick="closeCrudForm()"></button>
+                                </div>
+                                <div class="card-body bg-light">
+                                    <input type="hidden" id="crudId">
+                                    <div class="row g-2">
+                                        <!-- Datos Generales -->
+                                        <div class="col-12 border-bottom mb-2"><span class="badge bg-secondary">GENERAL</span></div>
+                                        <div class="col-md-3">
+                                            <label class="small fw-bold">Fecha</label>
+                                            <input type="date" id="crudFecha" class="form-control form-control-sm">
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="small fw-bold">Hora Inicio</label>
+                                            <input type="time" id="crudHoraIni" class="form-control form-control-sm">
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="small fw-bold">Hora Fin</label>
+                                            <input type="time" id="crudHoraFin" class="form-control form-control-sm">
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="small fw-bold">Tipo Operación</label>
+                                            <input type="text" id="crudTipo" class="form-control form-control-sm" list="tipoList">
+                                            <datalist id="tipoList">
+                                                <option value="RASTRILLAJE">
+                                                <option value="COMBATE URBANO">
+                                                <option value="CONTROL DE ARMAS (CAMEX)">
+                                                <option value="PROTECCIÓN DE ÁREAS RESERVADAS (ARS)">
+                                            </datalist>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="small fw-bold">Cantón</label>
+                                            <input type="text" id="crudCanton" class="form-control form-control-sm">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="small fw-bold">Parroquia/Sector</label>
+                                            <input type="text" id="crudParroquia" class="form-control form-control-sm">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="small fw-bold">Resultados</label>
+                                            <input type="text" id="crudResultados" class="form-control form-control-sm">
+                                        </div>
+
+                                        <!-- Personal -->
+                                        <div class="col-12 border-bottom mt-2 mb-2"><span class="badge bg-info text-dark">PERSONAL (PMP)</span></div>
+                                        <div class="col-md-4">
+                                            <label class="small">Oficiales</label>
+                                            <input type="number" id="crudOfi" class="form-control form-control-sm" min="0">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="small">Aerotécnicos</label>
+                                            <input type="number" id="crudAerot" class="form-control form-control-sm" min="0">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="small">Reservistas</label>
+                                            <input type="number" id="crudRes" class="form-control form-control-sm" min="0">
+                                        </div>
+
+                                        <!-- Vehículos -->
+                                        <div class="col-12 border-bottom mt-2 mb-2"><span class="badge bg-warning text-dark">MEDIOS / VEHÍCULOS</span></div>
+                                        <div class="col-4">
+                                            <label class="small">Camionetas</label>
+                                            <input type="number" id="crudCamioneta" class="form-control form-control-sm" min="0">
+                                        </div>
+                                        <div class="col-4">
+                                            <label class="small">Camiones</label>
+                                            <input type="number" id="crudCamion" class="form-control form-control-sm" min="0">
+                                        </div>
+                                        <div class="col-4">
+                                            <label class="small">Buses</label>
+                                            <input type="number" id="crudBus" class="form-control form-control-sm" min="0">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-footer text-end bg-white">
+                                    <button class="btn btn-secondary btn-sm" onclick="closeCrudForm()">Cancelar</button>
+                                    <button class="btn btn-success btn-sm" onclick="saveCrudData()">
+                                        <span class="material-icons align-middle" style="font-size:16px;">save</span> Guardar
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Tabla de Listado -->
+                            <div class="d-flex justify-content-between align-items-center mb-2 gap-2">
+                                <div class="d-flex align-items-center gap-2 flex-grow-1">
+                                    <h6 class="m-0 text-muted text-nowrap">Registros en el periodo:</h6>
+                                    <select id="crudFilterTipo" class="form-select form-select-sm" onchange="renderReportCrud()">
+                                        <option value="TODOS">-- Todos los Tipos --</option>
+                                    </select>
+                                </div>
+                                <button class="btn btn-primary btn-sm text-nowrap" onclick="openCrudForm()">
+                                    <span class="material-icons align-middle" style="font-size:16px;">add</span> Nuevo Registro
+                                </button>
+                            </div>
+                            <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                                <table class="table table-sm table-bordered table-hover bg-white" style="font-size: 0.8rem;">
+                                    <thead class="table-light sticky-top">
+                                        <tr>
+                                            <th>Fecha/Hora</th>
+                                            <th>Cantón/Sector</th>
+                                            <th>Tipo Operación</th>
+                                            <th>PMP</th>
+                                            <th>Medios</th>
+                                            <th class="text-center">Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="crudTableBody">
+                                        <!-- JS rellenará esto -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light py-1">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="controller.js"></script>
+</body>
+</html>

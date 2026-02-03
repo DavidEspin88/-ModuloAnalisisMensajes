@@ -1,0 +1,211 @@
+:root {
+    /* Paleta Corporativa Pro */
+    --pbi-navy: #001f3f;
+    --pbi-blue: #004e8c;
+    --pbi-accent: #0078d4;
+    --pbi-bg: #f8f9fa;
+    --pbi-card-bg: #ffffff;
+    --pbi-text-main: #201f1e;
+    --pbi-text-secondary: #605e5c;
+    --pbi-border: #edebe9;
+    --pbi-hover: #f3f2f1;
+    --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background-color: var(--pbi-bg);
+    color: var(--pbi-text-main);
+    margin: 0;
+}
+
+/* --- CONTENEDOR PRINCIPAL --- */
+.analisis-module-container {
+    max-width: 1700px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: var(--pbi-bg);
+}
+
+/* --- HEADER PROFESIONAL --- */
+.module-header {
+    background: white;
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 8px;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 20px;
+    border-left: 6px solid var(--pbi-accent);
+}
+
+.header-title h2 {
+    color: var(--pbi-navy);
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.header-title p {
+    color: var(--pbi-text-secondary);
+    font-size: 0.85rem;
+    margin: 2px 0 0 0;
+}
+
+/* --- PANEL DE FILTROS --- */
+.filter-panel {
+    background: white;
+    padding: 1.2rem;
+    border-radius: 8px;
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: flex-end;
+    margin-bottom: 25px;
+}
+
+.filter-group label {
+    font-weight: 600;
+    color: var(--pbi-text-secondary);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+}
+
+.filter-group select, .filter-group input {
+    border: 1px solid var(--pbi-border);
+    border-radius: 4px;
+    padding: 6px 10px;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+}
+
+.filter-group select:focus, .filter-group input:focus {
+    border-color: var(--pbi-accent);
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(0, 120, 212, 0.1);
+}
+
+/* --- KPI CARDS (Power BI Style) --- */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 25px;
+}
+
+.kpi-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: var(--shadow-sm);
+    border-bottom: 4px solid var(--pbi-accent);
+    transition: transform 0.2s;
+}
+
+.kpi-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+
+.kpi-card h3 {
+    color: var(--pbi-text-secondary);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.kpi-value {
+    color: var(--pbi-navy);
+    font-size: 2rem;
+    font-weight: 700;
+    display: block;
+}
+
+/* --- LAYOUT DE GRÁFICOS --- */
+.charts-wrapper {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 25px;
+}
+
+.chart-box {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: var(--shadow-sm);
+    height: 400px;
+}
+
+.chart-box h4 {
+    color: var(--pbi-navy);
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid var(--pbi-border);
+    padding-bottom: 8px;
+}
+
+/* --- TABLA EXPERTA --- */
+.table-section {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: var(--shadow-sm);
+}
+
+.table-wrapper {
+    padding: 0;
+    overflow-x: auto;
+}
+
+.official-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.85rem;
+}
+
+.official-table thead th {
+    background-color: #fcfcfc;
+    color: var(--pbi-navy);
+    font-weight: 600;
+    padding: 12px 15px;
+    border-bottom: 2px solid var(--pbi-border);
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.official-table thead th:hover { background-color: var(--pbi-hover); }
+
+.official-table tbody td {
+    padding: 10px 15px;
+    border-bottom: 1px solid var(--pbi-border);
+    color: var(--pbi-text-main);
+    vertical-align: middle;
+}
+
+.official-table tbody tr:hover { background-color: var(--pbi-hover); }
+
+/* Etiquetas de estado */
+.badge-planif { background: #e1dfdd; color: #323130; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
+.badge-ejecut { background: #dff6dd; color: #107c10; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
+
+/* --- MODAL DRAGGABLE --- */
+.modal-content { border: none; border-radius: 8px; box-shadow: var(--shadow-md); }
+.modal-header { border-bottom: 1px solid var(--pbi-border); }
+.modal-footer { background: #fcfcfc; border-top: 1px solid var(--pbi-border); }
+
+/* --- RESPONSIVE --- */
+@media (max-width: 1200px) {
+    .charts-wrapper { grid-template-columns: 1fr; }
+    .dashboard-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 768px) {
+    .dashboard-grid { grid-template-columns: 1fr; }
+    .module-header { flex-direction: column; text-align: center; }
+}
