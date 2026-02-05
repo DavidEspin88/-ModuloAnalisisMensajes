@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,11 +13,12 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
+
 <body>
 
     <!-- MÓDULO DE PROCESAMIENTO DE DATOS -->
     <section class="analisis-module-container">
-        
+
         <header class="module-header">
             <div class="header-title d-flex align-items-center gap-3">
                 <div class="logo-wrapper" style="height: 50px;">
@@ -64,6 +66,12 @@
                 </div>
             </div>
             <div class="filter-group">
+                <label>Provincia:</label>
+                <select id="filterProvincia" class="form-select form-select-sm">
+                    <option value="TODOS">TODOS</option>
+                </select>
+            </div>
+            <div class="filter-group">
                 <label>Jurisdicción (Cantón):</label>
                 <select id="filterCanton" class="form-select form-select-sm">
                     <option value="TODOS">TODOS</option>
@@ -77,9 +85,18 @@
             </div>
             <div class="filter-group flex-grow-1">
                 <label>Búsqueda Rápida:</label>
-                <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="Buscar por cualquier criterio...">
+                <input type="text" id="searchInput" class="form-control form-control-sm"
+                    placeholder="Buscar por cualquier criterio...">
             </div>
-            <button id="btnFilter" class="btn btn-primary btn-sm px-4">Aplicar</button>
+            <div class="d-flex gap-2">
+                <button id="btnFilter" class="btn btn-primary btn-sm px-4">
+                    <span class="material-icons align-middle" style="font-size:16px;">filter_alt</span> Aplicar
+                </button>
+                <button id="btnReset" class="btn btn-outline-secondary btn-sm px-3"
+                    title="Resetear filtros de fecha y hora">
+                    <span class="material-icons align-middle" style="font-size:16px;">refresh</span> Resetear
+                </button>
+            </div>
         </div>
 
         <!-- Dashboard de Estadísticas y Resumen -->
@@ -104,11 +121,17 @@
                 <h4>Resumen por Tipo</h4>
                 <table class="table table-sm table-hover" style="font-size: 0.8rem;">
                     <thead>
-                        <tr><th>TIPO</th><th class="text-end">CANT.</th></tr>
+                        <tr>
+                            <th>TIPO</th>
+                            <th class="text-end">CANT.</th>
+                        </tr>
                     </thead>
                     <tbody id="summaryBody"></tbody>
                     <tfoot class="table-light">
-                        <tr class="fw-bold"><td>TOTAL:</td><td id="summaryTotal" class="text-end">0</td></tr>
+                        <tr class="fw-bold">
+                            <td>TOTAL:</td>
+                            <td id="summaryTotal" class="text-end">0</td>
+                        </tr>
                     </tfoot>
                 </table>
             </div>
@@ -117,47 +140,168 @@
                 <h4>Distribución Horaria</h4>
                 <canvas id="opsChart"></canvas>
             </div>
-            
+
             <div class="chart-box">
                 <h4>Por Jurisdicción</h4>
                 <canvas id="geoChart"></canvas>
             </div>
         </div>
 
-        <!-- Tabla de Datos Simplificada -->
+        <!-- Tabs para Tabla y Matriz de Evaluación -->
         <div class="table-section">
-            <h4 class="mb-3" style="color: var(--pbi-navy); font-size: 1.1rem; font-weight: 600;">Detalle de Operaciones</h4>
-            <div class="table-wrapper">
-                <table id="dataTable" class="official-table table table-hover">
-                    <thead class="table-dark">
-                        <tr>
-                            <th>FUERZA</th>
-                            <th>TIPO DE OP.</th>
-                            <th class="text-center">PLANIF.</th>
-                            <th class="text-center">EJECUT.</th>
-                            <th>PROVINCIA</th>
-                            <th>CANTÓN</th>
-                            <th>PARROQUIA</th>
-                            <th class="text-center">FECHA</th>
-                            <th>RESULTADOS</th>
-                            <th class="text-center">PMP</th>
-                            <th class="hide-on-print text-center">ACCIONES</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tableBody">
-                        <tr><td colspan="11" class="text-center py-4">Cargue un archivo...</td></tr>
-                    </tbody>
-                    <tfoot class="table-light">
-                        <tr class="fw-bold">
-                            <td colspan="2" class="text-end">TOTAL PLANIFICADAS:</td>
-                            <td id="tableTotalPlanif" class="text-center">0</td>
-                            <td colspan="8"></td>
-                        </tr>
-                    </tfoot>
-                </table>
+            <!-- Nav Tabs -->
+            <ul class="nav nav-tabs mb-3" id="operacionesTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="detalle-tab" data-bs-toggle="tab" data-bs-target="#detalle"
+                        type="button" role="tab">
+                        <span class="material-icons align-middle" style="font-size: 18px;">table_view</span>
+                        Detalle de Operaciones
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="matriz-tab" data-bs-toggle="tab" data-bs-target="#matriz" type="button"
+                        role="tab">
+                        <span class="material-icons align-middle" style="font-size: 18px;">assessment</span>
+                        Matriz de Evaluación
+                    </button>
+                </li>
+            </ul>
+
+            <!-- Tab Content -->
+            <div class="tab-content" id="operacionesTabContent">
+
+                <!-- TAB 1: DETALLE DE OPERACIONES -->
+                <div class="tab-pane fade show active" id="detalle" role="tabpanel">
+                    <div class="table-wrapper">
+                        <table id="dataTable" class="official-table table table-hover">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>FUERZA</th>
+                                    <th>TIPO DE OP.</th>
+                                    <th class="text-center">PLANIF.</th>
+                                    <th class="text-center">EJECUT.</th>
+                                    <th>PROVINCIA</th>
+                                    <th>CANTÓN</th>
+                                    <th>PARROQUIA</th>
+                                    <th class="text-center">FECHA</th>
+                                    <th>RESULTADOS</th>
+                                    <th class="text-center">PMP</th>
+                                    <th class="hide-on-print text-center">ACCIONES</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody">
+                                <tr>
+                                    <td colspan="11" class="text-center py-4">Cargue un archivo...</td>
+                                </tr>
+                            </tbody>
+                            <tfoot class="table-light">
+                                <tr class="fw-bold">
+                                    <td colspan="2" class="text-end">TOTAL PLANIFICADAS:</td>
+                                    <td id="tableTotalPlanif" class="text-center">0</td>
+                                    <td colspan="8"></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- TAB 2: MATRIZ DE EVALUACIÓN -->
+                <div class="tab-pane fade" id="matriz" role="tabpanel">
+                    <div class="matriz-content">
+                        <!-- Filtros con fecha completa -->
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <div class="row g-3 align-items-end">
+                                    <div class="col-md-2">
+                                        <label class="form-label small fw-bold">Fecha Inicio</label>
+                                        <input type="date" id="matrizDateStart" class="form-control">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label small fw-bold">Hora Inicio</label>
+                                        <input type="time" id="matrizTimeStart" class="form-control" value="00:00">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label small fw-bold">Fecha Fin</label>
+                                        <input type="date" id="matrizDateEnd" class="form-control">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label small fw-bold">Hora Fin</label>
+                                        <input type="time" id="matrizTimeEnd" class="form-control" value="23:59">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <button class="btn btn-primary w-100" onclick="applyMatrizFilters()">
+                                            <span class="material-icons align-middle"
+                                                style="font-size: 18px;">filter_alt</span>
+                                            Filtrar
+                                        </button>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <div class="alert alert-info mb-0 py-2 px-3 small text-center">
+                                            <strong id="matrizTotalOps">0</strong> ops
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Grid de tarjetas -->
+                        <div id="matrizCardsContainer" class="matriz-grid">
+                            <div class="text-center text-muted py-5">
+                                <span class="material-icons" style="font-size: 48px; opacity: 0.3;">grid_view</span>
+                                <p class="mt-2">Configura el rango de fecha/hora y presiona "Filtrar"</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
 
+    </section>
+
+    <!-- Panel para Matriz de Evaluación -->
+    <section class="matriz-evaluacion-section">
+        <div class="container-fluid">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="m-0" style="color: white; font-weight: 600;">
+                    <span class="material-icons align-middle">assessment</span>
+                    Panel para Matriz de Evaluación
+                </h4>
+            </div>
+
+            <!-- Filtros independientes -->
+            <div class="matriz-filters card p-3 mb-3">
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-3">
+                        <label class="form-label small fw-bold">Hora de Inicio</label>
+                        <input type="time" id="matrizTimeStart" class="form-control" value="00:00">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small fw-bold">Hora de Fin</label>
+                        <input type="time" id="matrizTimeEnd" class="form-control" value="23:59">
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-primary w-100" onclick="applyMatrizFilters()">
+                            <span class="material-icons align-middle" style="font-size: 18px;">filter_alt</span>
+                            Filtrar Matriz
+                        </button>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="alert alert-info mb-0 py-2 px-3 small">
+                            <strong id="matrizTotalOps">0</strong> operaciones en el rango
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Grid de tarjetas -->
+            <div id="matrizCardsContainer" class="matriz-grid">
+                <div class="text-center text-white py-5">
+                    <span class="material-icons" style="font-size: 48px; opacity: 0.5;">grid_view</span>
+                    <p class="mt-2 opacity-75">Configura el rango de tiempo y presiona "Filtrar Matriz"</p>
+                </div>
+            </div>
+        </div>
     </section>
 
     </section>
@@ -168,7 +312,8 @@
             <div class="modal-content">
                 <div class="modal-header bg-dark text-white" style="cursor: move;">
                     <h5 class="modal-title"><span class="material-icons align-middle">edit</span> Editar Operación</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
                 </div>
                 <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
                     <input type="hidden" id="editId">
@@ -176,7 +321,7 @@
                         <label class="form-label fw-bold">Tipo de Operación (General)</label>
                         <input type="text" class="form-control" id="editTipo">
                     </div>
-                    
+
                     <div id="opsEditContainer">
                         <!-- Aquí se cargarán dinámicamente las fechas, horas, resultados y PMP de cada operación -->
                     </div>
@@ -196,19 +341,24 @@
         <div class="modal-dialog modal-xl">
             <div class="modal-content">
                 <div class="modal-header bg-dark text-white">
-                    <h5 class="modal-title"><span class="material-icons align-middle">analytics</span> Reporte & Gestión de Datos</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <h5 class="modal-title"><span class="material-icons align-middle">analytics</span> Reporte & Gestión
+                        de Datos</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
                 </div>
                 <div class="modal-body p-0">
                     <!-- Navegación de Pestañas -->
                     <ul class="nav nav-tabs nav-justified" id="reportTabs" role="tablist">
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link active rounded-0" id="preview-tab" data-bs-toggle="tab" data-bs-target="#tabPreview" type="button" role="tab">
-                                <span class="material-icons align-middle fs-6">text_snippet</span> Vista Previa & Generación
+                            <button class="nav-link active rounded-0" id="preview-tab" data-bs-toggle="tab"
+                                data-bs-target="#tabPreview" type="button" role="tab">
+                                <span class="material-icons align-middle fs-6">text_snippet</span> Vista Previa &
+                                Generación
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link rounded-0" id="data-tab" data-bs-toggle="tab" data-bs-target="#tabData" type="button" role="tab" onclick="renderReportCrud()">
+                            <button class="nav-link rounded-0" id="data-tab" data-bs-toggle="tab"
+                                data-bs-target="#tabData" type="button" role="tab" onclick="renderReportCrud()">
                                 <span class="material-icons align-middle fs-6">table_view</span> Gestión de Datos (CRUD)
                             </button>
                         </li>
@@ -238,7 +388,8 @@
                                 </div>
                                 <div class="col-12 text-end">
                                     <button class="btn btn-primary btn-sm" onclick="generateCustomReport()">
-                                        <span class="material-icons align-middle" style="font-size:16px;">autorenew</span> Actualizar Reporte
+                                        <span class="material-icons align-middle"
+                                            style="font-size:16px;">autorenew</span> Actualizar Reporte
                                     </button>
                                 </div>
                             </div>
@@ -246,26 +397,32 @@
                             <div class="mb-2 d-flex justify-content-between align-items-center">
                                 <small class="text-muted">Vista previa del mensaje formateado</small>
                                 <button class="btn btn-sm btn-outline-primary" onclick="copyMessage()">
-                                    <span class="material-icons align-middle" style="font-size:16px;">content_copy</span> Copiar Texto
+                                    <span class="material-icons align-middle"
+                                        style="font-size:16px;">content_copy</span> Copiar Texto
                                 </button>
                             </div>
-                            <textarea id="generatedMessage" class="form-control" rows="15" style="font-family: 'Consolas', monospace; font-size: 0.85rem; background-color: #f8f9fa;" readonly></textarea>
+                            <textarea id="generatedMessage" class="form-control" rows="15"
+                                style="font-family: 'Consolas', monospace; font-size: 0.85rem; background-color: #f8f9fa;"
+                                readonly></textarea>
                         </div>
 
                         <!-- TAB 2: CRUD DE DATOS -->
                         <div class="tab-pane fade" id="tabData" role="tabpanel">
-                            
+
                             <!-- Formulario de Edición/Creación (Oculto por defecto) -->
                             <div id="crudFormContainer" class="card mb-3 border-primary shadow-sm d-none">
-                                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center py-2">
+                                <div
+                                    class="card-header bg-primary text-white d-flex justify-content-between align-items-center py-2">
                                     <h6 class="m-0" id="crudFormTitle">Editar Operación</h6>
-                                    <button type="button" class="btn-close btn-close-white btn-sm" onclick="closeCrudForm()"></button>
+                                    <button type="button" class="btn-close btn-close-white btn-sm"
+                                        onclick="closeCrudForm()"></button>
                                 </div>
                                 <div class="card-body bg-light">
                                     <input type="hidden" id="crudId">
                                     <div class="row g-2">
                                         <!-- Datos Generales -->
-                                        <div class="col-12 border-bottom mb-2"><span class="badge bg-secondary">GENERAL</span></div>
+                                        <div class="col-12 border-bottom mb-2"><span
+                                                class="badge bg-secondary">GENERAL</span></div>
                                         <div class="col-md-3">
                                             <label class="small fw-bold">Fecha</label>
                                             <input type="date" id="crudFecha" class="form-control form-control-sm">
@@ -280,7 +437,8 @@
                                         </div>
                                         <div class="col-md-3">
                                             <label class="small fw-bold">Tipo Operación</label>
-                                            <input type="text" id="crudTipo" class="form-control form-control-sm" list="tipoList">
+                                            <input type="text" id="crudTipo" class="form-control form-control-sm"
+                                                list="tipoList">
                                             <datalist id="tipoList">
                                                 <option value="RASTRILLAJE">
                                                 <option value="COMBATE URBANO">
@@ -302,40 +460,49 @@
                                         </div>
 
                                         <!-- Personal -->
-                                        <div class="col-12 border-bottom mt-2 mb-2"><span class="badge bg-info text-dark">PERSONAL (PMP)</span></div>
+                                        <div class="col-12 border-bottom mt-2 mb-2"><span
+                                                class="badge bg-info text-dark">PERSONAL (PMP)</span></div>
                                         <div class="col-md-4">
                                             <label class="small">Oficiales</label>
-                                            <input type="number" id="crudOfi" class="form-control form-control-sm" min="0">
+                                            <input type="number" id="crudOfi" class="form-control form-control-sm"
+                                                min="0">
                                         </div>
                                         <div class="col-md-4">
                                             <label class="small">Aerotécnicos</label>
-                                            <input type="number" id="crudAerot" class="form-control form-control-sm" min="0">
+                                            <input type="number" id="crudAerot" class="form-control form-control-sm"
+                                                min="0">
                                         </div>
                                         <div class="col-md-4">
                                             <label class="small">Reservistas</label>
-                                            <input type="number" id="crudRes" class="form-control form-control-sm" min="0">
+                                            <input type="number" id="crudRes" class="form-control form-control-sm"
+                                                min="0">
                                         </div>
 
                                         <!-- Vehículos -->
-                                        <div class="col-12 border-bottom mt-2 mb-2"><span class="badge bg-warning text-dark">MEDIOS / VEHÍCULOS</span></div>
+                                        <div class="col-12 border-bottom mt-2 mb-2"><span
+                                                class="badge bg-warning text-dark">MEDIOS / VEHÍCULOS</span></div>
                                         <div class="col-4">
                                             <label class="small">Camionetas</label>
-                                            <input type="number" id="crudCamioneta" class="form-control form-control-sm" min="0">
+                                            <input type="number" id="crudCamioneta" class="form-control form-control-sm"
+                                                min="0">
                                         </div>
                                         <div class="col-4">
                                             <label class="small">Camiones</label>
-                                            <input type="number" id="crudCamion" class="form-control form-control-sm" min="0">
+                                            <input type="number" id="crudCamion" class="form-control form-control-sm"
+                                                min="0">
                                         </div>
                                         <div class="col-4">
                                             <label class="small">Buses</label>
-                                            <input type="number" id="crudBus" class="form-control form-control-sm" min="0">
+                                            <input type="number" id="crudBus" class="form-control form-control-sm"
+                                                min="0">
                                         </div>
                                     </div>
                                 </div>
                                 <div class="card-footer text-end bg-white">
                                     <button class="btn btn-secondary btn-sm" onclick="closeCrudForm()">Cancelar</button>
                                     <button class="btn btn-success btn-sm" onclick="saveCrudData()">
-                                        <span class="material-icons align-middle" style="font-size:16px;">save</span> Guardar
+                                        <span class="material-icons align-middle" style="font-size:16px;">save</span>
+                                        Guardar
                                     </button>
                                 </div>
                             </div>
@@ -344,16 +511,19 @@
                             <div class="d-flex justify-content-between align-items-center mb-2 gap-2">
                                 <div class="d-flex align-items-center gap-2 flex-grow-1">
                                     <h6 class="m-0 text-muted text-nowrap">Registros en el periodo:</h6>
-                                    <select id="crudFilterTipo" class="form-select form-select-sm" onchange="renderReportCrud()">
+                                    <select id="crudFilterTipo" class="form-select form-select-sm"
+                                        onchange="renderReportCrud()">
                                         <option value="TODOS">-- Todos los Tipos --</option>
                                     </select>
                                 </div>
                                 <button class="btn btn-primary btn-sm text-nowrap" onclick="openCrudForm()">
-                                    <span class="material-icons align-middle" style="font-size:16px;">add</span> Nuevo Registro
+                                    <span class="material-icons align-middle" style="font-size:16px;">add</span> Nuevo
+                                    Registro
                                 </button>
                             </div>
                             <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
-                                <table class="table table-sm table-bordered table-hover bg-white" style="font-size: 0.8rem;">
+                                <table class="table table-sm table-bordered table-hover bg-white"
+                                    style="font-size: 0.8rem;">
                                     <thead class="table-light sticky-top">
                                         <tr>
                                             <th>Fecha/Hora</th>
@@ -383,4 +553,5 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="controller.js"></script>
 </body>
+
 </html>
